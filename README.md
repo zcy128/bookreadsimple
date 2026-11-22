@@ -1,86 +1,83 @@
+简体中文 | [English](README.en.md)
+
 # BookReader - 原生 Android 电子书阅读器
 
-一个使用 **Kotlin + Jetpack Compose + Room** 打造的 Android 电子书阅读应用。支持 **EPUB、KEPUB、PDF、TXT**。书籍放在用户自己授权的 Google Drive 文件夹里，阅读进度写在该文件夹的 `bookreader-progress.json`，并保留本地离线副本。
+一个使用 **Kotlin + Jetpack Compose + Room** 打造的 Android 电子书阅读应用，支持 **EPUB、KEPUB、MOBI、PDF、TXT** 五种格式。书籍存放在用户手动授权的 Google Drive 文件夹中，阅读进度、书名元数据与置顶排序状态保存在该文件夹下的 `bookreader-progress.json`，并保留本地离线副本。
 
 ---
 
 ## 🌟 核心特性
 
 ### 1. 多格式原生支持
-- **EPUB**：原生轻量 ZIP 解压与 OPF/NCX 解析引擎，自动提取目录与章节；采用 Compose WebView 深度注入响应式 CSS，支持多栏排版与护眼色调。
-- **PDF**：基于 Android 原生 `android.graphics.pdf.PdfRenderer` 高性能矢量渲染，支持 Pinch-to-zoom 双指平滑缩放、横向翻页与高保真显示。
-- **TXT**：智能字符集编码探测（UTF-8、GBK、Unicode 等），正则匹配智能分章；支持字号缩放、行距微调与高精度字符偏移量进度记忆。
+- **EPUB / KEPUB**：原生轻量 ZIP 解压与 OPF/NCX/NAV 解析引擎，自动提取目录与章节；采用 Compose WebView 注入响应式 CSS，支持分页/滚动阅读、脚注弹窗与护眼配色。
+- **MOBI**：纯 Kotlin 实现的 Mobipocket / PalmDOC 解析器（支持无压缩、PalmDOC LZ77 及 HUFF/CDIC 解压），自动提取元数据与内嵌图片并切分章节，复用 `EpubReaderView` 阅读体验（不支持带 DRM 加密的 `.mobi`）。
+- **PDF**：基于 Android 原生 `android.graphics.pdf.PdfRenderer` 高性能矢量渲染，支持双指缩放、横向翻页与高保真显示。
+- **TXT**：自动探测字符集编码（UTF-8、GBK、Unicode 等），正则智能分章；支持字号缩放、行距微调与高精度字符偏移量进度记忆。
 
-### 2. Google 账号与 Drive
-- 使用 Google Sign-In 登录。未登录时可以本地访客阅读。
-- 书籍来自用户手动授权的 Google Drive 子文件夹，不使用 Firebase。
-- 阅读进度保存在该文件夹的 `bookreader-progress.json`，并先写入本机 Room。打开书时会把整本文件缓存到本地，供离线阅读。
+### 2. Google Drive 文件夹同步与离线阅读
+- 支持 Google Sign-In 登录，未登录时也可本地访客阅读。
+- 通过系统 SAF（Storage Access Framework）授权用户指定的 Google Drive 子文件夹，不申请宽泛的网盘根目录权限，不依赖 Firebase。
+- **主页下拉刷新与同步概况**：支持下拉同步云端新增/移除的书籍，等待 SAF 云端目录刷新完成后展示扫描文件数、新增/移除数、跳过与失败统计。
+- **跨设备状态同步**：阅读进度、从电子书解析的真实书名、手动重命名、标签、书籍密码保护状态以及“取消置顶”排序状态均通过 `bookreader-progress.json` 跨设备同步。
+- 打开书籍时自动缓存到本地，支持无网络离线阅读。
 
 ### 3. 手机与平板自适应（Adaptive UI）
-- **手机屏幕 (Compact / Medium)**：
-  - 底部紧凑导航栏 (`NavigationBar`)
-  - 书架双列流式卡片
-  - 沉浸式单手阅读交互
-- **平板 / 折叠屏 (Expanded / Large)**：
-  - 侧边人体工学导航栏 (`NavigationRail`)
-  - 书架 3~6 列自适应网格排版 (`GridCells.Adaptive`)
-  - **实体书拟真双页展开模式**：TXT / EPUB 自动采用 CSS Multi-Column 双栏排版，PDF 自动呈现左右并排双页。
+- **手机屏幕 (Compact / Medium)**：底部紧凑导航栏（`NavigationBar`）、书架列表/双列卡片切换、单手左右手翻页模式。
+- **平板 / 折叠屏 (Expanded / Large)**：侧边导航栏（`NavigationRail`）、书架 3~6 列自适应网格（`GridCells.Adaptive`）、双页展开排版体验。
 
-### 4. 阅读器定制体验
-- 4 款经典阅读主题：经典白、羊皮纸复古、护眼温润绿、深邃夜间黑
-- 字号自由调节（12sp ~ 32sp）
-- 章节目录侧滑抽屉，支持极速章节跳转与进度拖动调节
+### 4. 阅读器定制与辅助功能
+- 4 款阅读主题：经典白、羊皮纸、护眼绿、深邃黑。
+- 字号自由调节（12sp ~ 32sp）、行距调节、滚动/分页模式切换、左手/右手翻页区域切换。
+- 章节目录侧滑抽屉、进度条模式切换、划词查词与 TTS 语音朗读。
 
 ---
 
 ## 🏗️ 架构概览
 
-```
+```text
 com.example.bookreader
-├── BookReaderApplication.kt       # 全局单例与生命周期初始化
-├── MainActivity.kt                # 窗口大小判定、响应式容器与导航
+├── BookReaderApplication.kt         # 全局单例与生命周期初始化
+├── MainActivity.kt                  # 窗口大小判定、响应式容器与导航
 ├── domain/
 │   └── model/
-│       └── BookModels.kt          # 书籍、进度、章节、排版设置模型
+│       └── BookModels.kt            # 书籍、格式、进度、章节、阅读设置模型
 ├── data/
 │   ├── local/
-│   │   ├── Entities.kt            # Room 实体 (BookEntity, ProgressEntity)
-│   │   ├── Daos.kt                # 本地离线 DAO
-│   │   └── AppDatabase.kt         # Room Database
+│   │   ├── Entities.kt              # Room 实体 (BookEntity, ProgressEntity)
+│   │   ├── Daos.kt                  # 本地离线 DAO
+│   │   ├── BookPasswordStore.kt     # 书籍密码存储
+│   │   └── AppDatabase.kt           # Room Database
 │   ├── remote/
-│   │   └── GoogleDriveManager.kt        # 授权文件夹、书籍与阅读进度
+│   │   └── GoogleDriveManager.kt    # SAF 授权文件夹扫描、传输与进度 JSON 读写
 │   └── repository/
-│       └── BookRepository.kt      # 离线优先仓库与同步逻辑
+│       └── BookRepository.kt        # 离线优先仓库与跨设备合并同步逻辑
 ├── parser/
-│   ├── TxtBookParser.kt           # TXT 编码检测与智能分章
-│   ├── PdfBookRenderer.kt         # 原生 PdfRenderer 线程安全渲染
-│   └── EpubBookParser.kt          # EPUB 规范解压与 OPF/NCX 目录提取
+│   ├── BookMetadataExtractor.kt     # 书籍元数据（书名/作者）提取
+│   ├── TxtBookParser.kt             # TXT 编码检测与智能分章
+│   ├── PdfBookRenderer.kt           # 原生 PdfRenderer 线程安全渲染
+│   ├── EpubBookParser.kt            # EPUB/KEPUB 解压与 OPF/NCX/NAV 目录提取
+│   └── MobiBookParser.kt            # 纯 Kotlin MOBI 解析与图片/章节提取
 └── ui/
-    ├── theme/                     # Compose Material 3 主题与配色
-    ├── components/
-    │   ├── AdaptiveNavigation.kt  # 手机/平板自适应导航架构
-    │   └── BookCard.kt            # 书籍封面卡片与离线下载指示
-    ├── bookshelf/
-    │   ├── BookshelfScreen.kt     # 自适应书架界面
-    │   └── BookshelfViewModel.kt  # 书架业务与过滤逻辑
-    ├── reader/
-    │   ├── ReaderContainerScreen.kt # 沉浸式阅读控制器与设置抽屉
-    │   ├── ReaderViewModel.kt     # 阅读状态与防抖持久化
-    │   ├── TxtReaderView.kt       # TXT 阅读组件
-    │   ├── PdfReaderView.kt       # PDF 双页/手势缩放阅读组件
-    │   └── EpubReaderView.kt      # EPUB 响应式排版 WebView 组件
-    └── settings/
-        └── SyncScreen.kt          # 离线缓存管理与云端状态监测
+    ├── theme/                       # Compose Material 3 主题与配色
+    ├── components/                  # 自适应导航、书架卡片/列表项、查词弹窗
+    ├── bookshelf/                   # 书架界面、下拉刷新与过滤排序逻辑
+    ├── reader/                      # 沉浸式阅读容器及 TXT/PDF/EPUB(MOBI) 视图
+    └── settings/                    # 同步设置与离线缓存管理
 ```
 
 ---
 
-## 📦 编译与打包
+## 📦 编译与测试
 
 ```powershell
+# 运行单元测试与 Lint 检查
+.\gradlew.bat testDebugUnitTest lintDebug
+
 # 编译 Debug APK
 .\gradlew.bat assembleDebug
+# 输出路径：app\build\outputs\apk\debug\app-debug.apk
 
-# 生成的 APK 输出路径：
-app\build\outputs\apk\debug\app-debug.apk
+# 编译 Release APK
+.\gradlew.bat assembleRelease
+# 输出路径：app\build\outputs\apk\release\app-release.apk
 ```
