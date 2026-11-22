@@ -1,83 +1,83 @@
-简体中文 | [English](README.en.md)
+English | [简体中文](README.zh-CN.md)
 
-# BookReader - 原生 Android 电子书阅读器
+# BookReader - Native Android E-Book Reader
 
-一个使用 **Kotlin + Jetpack Compose + Room** 打造的 Android 电子书阅读应用，支持 **EPUB、KEPUB、MOBI、PDF、TXT** 五种格式。书籍存放在用户手动授权的 Google Drive 文件夹中，阅读进度、书名元数据与置顶排序状态保存在该文件夹下的 `bookreader-progress.json`，并保留本地离线副本。
-
----
-
-## 🌟 核心特性
-
-### 1. 多格式原生支持
-- **EPUB / KEPUB**：原生轻量 ZIP 解压与 OPF/NCX/NAV 解析引擎，自动提取目录与章节；采用 Compose WebView 注入响应式 CSS，支持分页/滚动阅读、脚注弹窗与护眼配色。
-- **MOBI**：纯 Kotlin 实现的 Mobipocket / PalmDOC 解析器（支持无压缩、PalmDOC LZ77 及 HUFF/CDIC 解压），自动提取元数据与内嵌图片并切分章节，复用 `EpubReaderView` 阅读体验（不支持带 DRM 加密的 `.mobi`）。
-- **PDF**：基于 Android 原生 `android.graphics.pdf.PdfRenderer` 高性能矢量渲染，支持双指缩放、横向翻页与高保真显示。
-- **TXT**：自动探测字符集编码（UTF-8、GBK、Unicode 等），正则智能分章；支持字号缩放、行距微调与高精度字符偏移量进度记忆。
-
-### 2. Google Drive 文件夹同步与离线阅读
-- 支持 Google Sign-In 登录，未登录时也可本地访客阅读。
-- 通过系统 SAF（Storage Access Framework）授权用户指定的 Google Drive 子文件夹，不申请宽泛的网盘根目录权限，不依赖 Firebase。
-- **主页下拉刷新与同步概况**：支持下拉同步云端新增/移除的书籍，等待 SAF 云端目录刷新完成后展示扫描文件数、新增/移除数、跳过与失败统计。
-- **跨设备状态同步**：阅读进度、从电子书解析的真实书名、手动重命名、标签、书籍密码保护状态以及“取消置顶”排序状态均通过 `bookreader-progress.json` 跨设备同步。
-- 打开书籍时自动缓存到本地，支持无网络离线阅读。
-
-### 3. 手机与平板自适应（Adaptive UI）
-- **手机屏幕 (Compact / Medium)**：底部紧凑导航栏（`NavigationBar`）、书架列表/双列卡片切换、单手左右手翻页模式。
-- **平板 / 折叠屏 (Expanded / Large)**：侧边导航栏（`NavigationRail`）、书架 3~6 列自适应网格（`GridCells.Adaptive`）、双页展开排版体验。
-
-### 4. 阅读器定制与辅助功能
-- 4 款阅读主题：经典白、羊皮纸、护眼绿、深邃黑。
-- 字号自由调节（12sp ~ 32sp）、行距调节、滚动/分页模式切换、左手/右手翻页区域切换。
-- 章节目录侧滑抽屉、进度条模式切换、划词查词与 TTS 语音朗读。
+A native Android e-book reader built with **Kotlin + Jetpack Compose + Room**, supporting **EPUB, KEPUB, MOBI, PDF, and TXT**. Books are stored in a user-authorized Google Drive folder, while reading progress, extracted titles, and shelf sorting states are synced via `bookreader-progress.json` inside that folder with local offline caching.
 
 ---
 
-## 🏗️ 架构概览
+## 🌟 Key Features
+
+### 1. Multi-Format Native Support
+- **EPUB / KEPUB**: Lightweight native ZIP extraction with OPF/NCX/NAV parsing for chapters and TOC; rendered in Compose WebView with injected responsive CSS, paged/scroll modes, footnote popups, and eye-care themes.
+- **MOBI**: Pure-Kotlin Mobipocket / PalmDOC parser (supporting uncompressed, PalmDOC LZ77, and HUFF/CDIC records), extracting metadata, embedded images, and split chapters into `EpubReaderView` (DRM-protected `.mobi` files are not supported).
+- **PDF**: High-performance rendering via Android's native `android.graphics.pdf.PdfRenderer`, with pinch-to-zoom and horizontal paging.
+- **TXT**: Automatic charset detection (UTF-8, GBK, Unicode, etc.), regex-based chapter splitting, customizable font size/line spacing, and character-offset progress tracking.
+
+### 2. Google Drive Folder Sync & Offline Reading
+- Google Sign-In support, with local guest mode available without signing in.
+- Uses Android Storage Access Framework (SAF) to access only the specific Google Drive subfolder chosen by the user—no broad Drive root access or Firebase backend required.
+- **Pull-to-Refresh & Sync Summary**: Pull down on the bookshelf to sync cloud additions/removals (waiting for SAF `EXTRA_LOADING` cloud updates) and view a summary of scanned files, added/removed books, skipped formats, and failures.
+- **Cross-Device Sync**: Reading progress, extracted book titles, custom renames, tags, book lock states, and cleared-priority states are synced via `bookreader-progress.json`.
+- Books are cached locally on open for offline reading.
+
+### 3. Adaptive UI for Phones & Tablets
+- **Phones (Compact / Medium)**: Bottom `NavigationBar`, list/grid toggle, and left/right-hand tap zones for one-handed reading.
+- **Tablets / Foldables (Expanded / Large)**: Side `NavigationRail`, adaptive 3–6 column bookshelf grid (`GridCells.Adaptive`), and two-page reading layout support.
+
+### 4. Reader Customization & Utilities
+- 4 reading themes: Light, Parchment, Eye-Protect Green, and Dark.
+- Adjustable font size (12sp–32sp), line spacing, scroll/page mode, and left/right-hand page turning.
+- Slide-out chapter drawer, progress bar modes, in-app dictionary lookup, and Text-to-Speech (TTS).
+
+---
+
+## 🏗️ Architecture Overview
 
 ```text
 com.example.bookreader
-├── BookReaderApplication.kt         # 全局单例与生命周期初始化
-├── MainActivity.kt                  # 窗口大小判定、响应式容器与导航
+├── BookReaderApplication.kt         # Application singleton & lifecycle setup
+├── MainActivity.kt                  # Window size class detection & navigation host
 ├── domain/
 │   └── model/
-│       └── BookModels.kt            # 书籍、格式、进度、章节、阅读设置模型
+│       └── BookModels.kt            # Book, format, progress, chapter, and settings models
 ├── data/
 │   ├── local/
-│   │   ├── Entities.kt              # Room 实体 (BookEntity, ProgressEntity)
-│   │   ├── Daos.kt                  # 本地离线 DAO
-│   │   ├── BookPasswordStore.kt     # 书籍密码存储
+│   │   ├── Entities.kt              # Room entities (BookEntity, ProgressEntity)
+│   │   ├── Daos.kt                  # Offline Room DAOs
+│   │   ├── BookPasswordStore.kt     # Book lock password store
 │   │   └── AppDatabase.kt           # Room Database
 │   ├── remote/
-│   │   └── GoogleDriveManager.kt    # SAF 授权文件夹扫描、传输与进度 JSON 读写
+│   │   └── GoogleDriveManager.kt    # SAF folder scanning, file transfer, & progress JSON I/O
 │   └── repository/
-│       └── BookRepository.kt        # 离线优先仓库与跨设备合并同步逻辑
+│       └── BookRepository.kt        # Offline-first repository & cross-device sync logic
 ├── parser/
-│   ├── BookMetadataExtractor.kt     # 书籍元数据（书名/作者）提取
-│   ├── TxtBookParser.kt             # TXT 编码检测与智能分章
-│   ├── PdfBookRenderer.kt           # 原生 PdfRenderer 线程安全渲染
-│   ├── EpubBookParser.kt            # EPUB/KEPUB 解压与 OPF/NCX/NAV 目录提取
-│   └── MobiBookParser.kt            # 纯 Kotlin MOBI 解析与图片/章节提取
+│   ├── BookMetadataExtractor.kt     # Title & author metadata extraction
+│   ├── TxtBookParser.kt             # TXT charset detection & chapter splitting
+│   ├── PdfBookRenderer.kt           # Thread-safe native PdfRenderer wrapper
+│   ├── EpubBookParser.kt            # EPUB/KEPUB extraction & OPF/NCX/NAV parsing
+│   └── MobiBookParser.kt            # Pure-Kotlin MOBI parser with image & chapter extraction
 └── ui/
-    ├── theme/                       # Compose Material 3 主题与配色
-    ├── components/                  # 自适应导航、书架卡片/列表项、查词弹窗
-    ├── bookshelf/                   # 书架界面、下拉刷新与过滤排序逻辑
-    ├── reader/                      # 沉浸式阅读容器及 TXT/PDF/EPUB(MOBI) 视图
-    └── settings/                    # 同步设置与离线缓存管理
+    ├── theme/                       # Compose Material 3 theme & colors
+    ├── components/                  # Adaptive navigation, book cards/rows, dictionary sheet
+    ├── bookshelf/                   # Bookshelf UI, pull-to-refresh, search & filters
+    ├── reader/                      # Reader container & TXT/PDF/EPUB(MOBI) views
+    └── settings/                    # Sync settings & offline cache management
 ```
 
 ---
 
-## 📦 编译与测试
+## 📦 Build & Test
 
 ```powershell
-# 运行单元测试与 Lint 检查
+# Run unit tests and Lint checks
 .\gradlew.bat testDebugUnitTest lintDebug
 
-# 编译 Debug APK
+# Build Debug APK
 .\gradlew.bat assembleDebug
-# 输出路径：app\build\outputs\apk\debug\app-debug.apk
+# Output: app\build\outputs\apk\debug\app-debug.apk
 
-# 编译 Release APK
+# Build Release APK
 .\gradlew.bat assembleRelease
-# 输出路径：app\build\outputs\apk\release\app-release.apk
+# Output: app\build\outputs\apk\release\app-release.apk
 ```
