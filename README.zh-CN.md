@@ -1,25 +1,27 @@
 [English](README.md) | 简体中文
 
-# BookReader - 原生 Android 电子书阅读器
+# BookReader - 注重隐私的原生 Android 电子书阅读器
 
-一个使用 **Kotlin + Jetpack Compose + Room** 打造的 Android 电子书阅读应用，支持 **EPUB、KEPUB、MOBI、PDF、TXT** 五种格式。书籍存放在用户手动授权的 Google Drive 文件夹中，阅读进度、书名元数据与置顶排序状态保存在该文件夹下的 `bookreader-progress.json`，并保留本地离线副本。
+一个使用 **Kotlin + Jetpack Compose + Room** 打造的注重隐私的 Android 电子书阅读应用，支持 **EPUB、KEPUB、MOBI、PDF、TXT** 五种格式。
+
+> **隐私优先 · 书库完全归你所有**：所有电子书都保存在**你自己的 Google Drive 文件夹**中，**没有任何第三方服务器存储或收集数据，其他人无法访问你的书籍**。同时，阅读进度、真实书名与书架排序状态也会通过你同一私密文件夹下的 `bookreader-progress.json` 在多设备间自动同步，并保留本地离线副本。
 
 ---
 
 ## 🌟 核心特性
 
-### 1. 多格式原生支持
+### 1. 个人私有云存储与跨设备同步
+- **无第三方服务器**：不依赖 Firebase 或任何开发者自建后台，书籍文件始终保存在你自己的 Google Drive 与本地设备中，他人无法访问。
+- **最小权限文件夹授权**：通过系统 SAF（Storage Access Framework）仅授权你手动选择的 Google Drive 子文件夹，不申请宽泛的网盘根目录权限；未登录时也可使用本地访客模式。
+- **阅读进度与状态跨设备同步**：阅读进度、从电子书解析的真实书名、手动重命名、标签、书籍密码保护状态以及“取消置顶”排序状态均通过你私密文件夹中的 `bookreader-progress.json` 跨设备同步。
+- **离线缓存阅读**：打开书籍时自动缓存到本地，支持无网络离线阅读。
+- **主页下拉刷新与同步概况**：支持下拉同步云端新增/移除的书籍，等待 SAF 云端目录刷新完成后展示扫描文件数、新增/移除数、跳过与失败统计。
+
+### 2. 多格式原生支持
 - **EPUB / KEPUB**：原生轻量 ZIP 解压与 OPF/NCX/NAV 解析引擎，自动提取目录与章节；采用 Compose WebView 注入响应式 CSS，支持分页/滚动阅读、脚注弹窗与护眼配色。
 - **MOBI**：纯 Kotlin 实现的 Mobipocket / PalmDOC 解析器（支持无压缩、PalmDOC LZ77 及 HUFF/CDIC 解压），自动提取元数据与内嵌图片并切分章节，复用 `EpubReaderView` 阅读体验（不支持带 DRM 加密的 `.mobi`）。
 - **PDF**：基于 Android 原生 `android.graphics.pdf.PdfRenderer` 高性能矢量渲染，支持双指缩放、横向翻页与高保真显示。
 - **TXT**：自动探测字符集编码（UTF-8、GBK、Unicode 等），正则智能分章；支持字号缩放、行距微调与高精度字符偏移量进度记忆。
-
-### 2. Google Drive 文件夹同步与离线阅读
-- 支持 Google Sign-In 登录，未登录时也可本地访客阅读。
-- 通过系统 SAF（Storage Access Framework）授权用户指定的 Google Drive 子文件夹，不申请宽泛的网盘根目录权限，不依赖 Firebase。
-- **主页下拉刷新与同步概况**：支持下拉同步云端新增/移除的书籍，等待 SAF 云端目录刷新完成后展示扫描文件数、新增/移除数、跳过与失败统计。
-- **跨设备状态同步**：阅读进度、从电子书解析的真实书名、手动重命名、标签、书籍密码保护状态以及“取消置顶”排序状态均通过 `bookreader-progress.json` 跨设备同步。
-- 打开书籍时自动缓存到本地，支持无网络离线阅读。
 
 ### 3. 手机与平板自适应（Adaptive UI）
 - **手机屏幕 (Compact / Medium)**：底部紧凑导航栏（`NavigationBar`）、书架列表/双列卡片切换、单手左右手翻页模式。

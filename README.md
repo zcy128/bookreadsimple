@@ -1,25 +1,27 @@
 English | [简体中文](README.zh-CN.md)
 
-# BookReader - Native Android E-Book Reader
+# BookReader - Privacy-First Native Android E-Book Reader
 
-A native Android e-book reader built with **Kotlin + Jetpack Compose + Room**, supporting **EPUB, KEPUB, MOBI, PDF, and TXT**. Books are stored in a user-authorized Google Drive folder, while reading progress, extracted titles, and shelf sorting states are synced via `bookreader-progress.json` inside that folder with local offline caching.
+A privacy-first native Android e-book reader built with **Kotlin + Jetpack Compose + Room**, supporting **EPUB, KEPUB, MOBI, PDF, and TXT**.
+
+> **Privacy First — Your Books Stay Yours:** All your books are stored strictly in your **own Google Drive folder**, so **no one else (and no third-party server) can access them**. Your reading progress, extracted titles, and shelf sorting also sync seamlessly across devices via `bookreader-progress.json` inside that same private folder, with local offline caching.
 
 ---
 
 ## 🌟 Key Features
 
-### 1. Multi-Format Native Support
+### 1. Private Personal Cloud & Progress Sync
+- **Zero Third-Party Servers**: No Firebase, no developer-hosted backend, and no telemetry. Your e-books never leave your own Google Drive and your device.
+- **Scoped Folder Access**: Uses Android Storage Access Framework (SAF) to access only the specific Google Drive subfolder you manually authorize—never requesting broad Drive root access.
+- **Seamless Progress & Metadata Sync**: Reading progress, extracted book titles, custom renames, tags, book lock states, and cleared-priority states are synced privately across your devices via `bookreader-progress.json` in your Drive folder.
+- **Offline Reading**: Books are cached locally when opened so you can read anytime without an internet connection.
+- **Pull-to-Refresh & Sync Summary**: Pull down on the bookshelf to sync cloud additions/removals (waiting for SAF `EXTRA_LOADING` cloud updates) and view a summary of scanned files, added/removed books, skipped formats, and failures.
+
+### 2. Multi-Format Native Support
 - **EPUB / KEPUB**: Lightweight native ZIP extraction with OPF/NCX/NAV parsing for chapters and TOC; rendered in Compose WebView with injected responsive CSS, paged/scroll modes, footnote popups, and eye-care themes.
 - **MOBI**: Pure-Kotlin Mobipocket / PalmDOC parser (supporting uncompressed, PalmDOC LZ77, and HUFF/CDIC records), extracting metadata, embedded images, and split chapters into `EpubReaderView` (DRM-protected `.mobi` files are not supported).
 - **PDF**: High-performance rendering via Android's native `android.graphics.pdf.PdfRenderer`, with pinch-to-zoom and horizontal paging.
 - **TXT**: Automatic charset detection (UTF-8, GBK, Unicode, etc.), regex-based chapter splitting, customizable font size/line spacing, and character-offset progress tracking.
-
-### 2. Google Drive Folder Sync & Offline Reading
-- Google Sign-In support, with local guest mode available without signing in.
-- Uses Android Storage Access Framework (SAF) to access only the specific Google Drive subfolder chosen by the user—no broad Drive root access or Firebase backend required.
-- **Pull-to-Refresh & Sync Summary**: Pull down on the bookshelf to sync cloud additions/removals (waiting for SAF `EXTRA_LOADING` cloud updates) and view a summary of scanned files, added/removed books, skipped formats, and failures.
-- **Cross-Device Sync**: Reading progress, extracted book titles, custom renames, tags, book lock states, and cleared-priority states are synced via `bookreader-progress.json`.
-- Books are cached locally on open for offline reading.
 
 ### 3. Adaptive UI for Phones & Tablets
 - **Phones (Compact / Medium)**: Bottom `NavigationBar`, list/grid toggle, and left/right-hand tap zones for one-handed reading.
