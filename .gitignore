@@ -13,7 +13,9 @@ app/build/
 *.aab
 *.jks
 *.keystore
+keystore.properties
 google-services.json
 .firebaserc
 firebase.json
 design-demos/
+store_assets/

@@ -78,11 +78,12 @@ fun AuthScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         isLoading = false
-        if (result.resultCode == Activity.RESULT_CANCELED) {
+        val data = result.data
+        if (result.resultCode == Activity.RESULT_CANCELED && data == null) {
             errorMessage = strings.cancelGoogleLogin
             return@rememberLauncherForActivityResult
         }
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
         try {
             val account = task.getResult(ApiException::class.java)
             if (account != null) {
@@ -100,10 +101,14 @@ fun AuthScreen(
             }
         } catch (e: ApiException) {
             val code = e.statusCode
+            if (code == 12501 || code == 16) {
+                errorMessage = strings.cancelGoogleLogin
+                return@rememberLauncherForActivityResult
+            }
             val detail = when (code) {
-                10 -> "应用配置错误 (Code 10 DEVELOPER_ERROR: 请确保手机有网络且包名一致)"
+                10 -> "应用配置错误 (Code 10 DEVELOPER_ERROR: 请确保手机有网络且包名与SHA-1一致)"
                 7 -> "网络不可达 (Code 7: 无法连接 Google 鉴权服务器，请检查网络/梯子)"
-                12500 -> "Google Play 服务异常 (Code 12500)"
+                12500 -> "Google Play 服务异常 (Code 12500: 请检查 OAuth 同意屏幕或 Google Play 服务)"
                 else -> "Google 错误代码 $code: ${e.localizedMessage ?: "未完成登录"}"
             }
             errorMessage = detail
